@@ -1,4 +1,4 @@
-Create a TODO
+Edit the TODO
 Create a web services
 Create a Api Rest with Django
 https://www.mathsisfun.com/worksheets/index.php
