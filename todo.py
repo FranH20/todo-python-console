@@ -4,7 +4,7 @@ class todo:
     def __init__(self):
         self._title = ""
         self._description = ""
-        self._date = ""
+        self._date = datetime.now().strftime("%d/%m/%Y")
         self._time = ""
 
     @property
@@ -15,7 +15,7 @@ class todo:
     def title(self, value):
         if len(value) < 80:
             self._title = value
-            self._date = datetime.now().strftime("%d/%m/%Y")
+            self._time = datetime.now().strftime("%H:%M:%S")
 
     @property
     def description(self):
