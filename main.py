@@ -1,25 +1,30 @@
-from typing import Collection
+#python
+from os import system
+#rich
 from rich.console import Console
 from rich.layout import Panel
-from rich.table import Table
+from rich.text import Text
+from rich.align import Align
+
+#pysondb
 from pysondb import db
+
+#packages
 from theme import custom_theme
-from layout import layout
 from todo import todo
+
 
 database = db.getDb("database.json")
 console = Console(theme=custom_theme)
 
-#Table Todo
-tableTodos = Table(title="Todo list")
-tableTodos.add_column("N°", style="medium_purple")
-tableTodos.add_column("Title", style="medium_spring_green")
-tableTodos.add_column("Date", style="medium_purple")
-
 def create():
+    todo_title = console.input("[primary]Add the Title of the new Todo, [X] to exit: [/primary]")
+    if todo_title.lower().strip() == 'x':
+        return
+    todo_description = console.input("[secondary]Add the description todo, [X] to exit: [/secondary]")
+    if todo_description.lower().strip() == 'x':
+        return
     new_todo = todo()
-    todo_title = console.input("[primary]Add the new todo: [/primary]")
-    todo_description = console.input("[secondary]Add the description todo: [/secondary]")
     try:
         new_todo.title = todo_title
         new_todo.description = todo_description
@@ -27,37 +32,65 @@ def create():
             "title":new_todo.title,
             "description": new_todo.description,
             "time": new_todo.time,
-            "date": new_todo.date
+            "date": new_todo.date,
+            "status": new_todo.status
         })
     except Exception as e:
         console.log("An error an occurred... ",e)
+        
+def read_detail(collection):
+    system("clear")
+    console.print(f'Title: [primary]{collection["title"]}[/primary]')
+    console.print(f'Description: [primary]{collection["description"]}[/primary]')
+    if collection["status"] == True:
+        console.print('Status: [primary]Todo finished[/primary]  :white_check_mark:')
+    else:
+        console.print('Status: [primary]Todo unfinished[/primary] :x:')
+    console.print(f'Date: [primary]{collection["date"]}[/primary]')
+    console.print(f'Time: [primary]{collection["time"]}[/primary]')
 
-def read():
+def read_once():
     all_data = database.getAll()
     count = 0
     for collection in all_data:
         count = count + 1
-        tableTodos.add_row(str(count),collection["title"],collection["date"])
-    console.print(tableTodos)
+        message = f'{str(count)}.- '
+        if collection["status"] == True:
+            message = f':white_check_mark: [secondary] {str(count)}.- {collection["title"]} [/secondary]'
+        else:
+            message = f':x: [secondary] {str(count)}.- {collection["title"]} [/secondary]' 
+        console.print(message)
+    
+        
+def read():
+    todo_read = 0
+    try:
+        todo_read = int(console.input("[primary]Choose the TODO to view the detail, [0] to exit: [/primary]"))
+    except ValueError as e:
+        console.log("The input was not a valid integer")
+    if todo_read == 0:
+        return
+    todo_read = todo_read - 1
+    collection = find_collection(todo_read)
+    read_detail(collection)
 
-def read_detail(number_row, all_data):
-    data = all_data[number_row]
-    console.print(data["title"])
-    console.print(data["description"])
-    console.print(data["time"])
-    console.print(data["date"])
-
-def find_collection(todo_update):
+def find_collection(todo_search):
     collection = {}
     all_data = database.getAll()
-    if todo_update >= 0:
-        collection = all_data[todo_update]
+    if todo_search >= 0:
+        collection = all_data[todo_search]
     return collection
 
 def update():
     #Get the Todo
+    todo_update = 0
+    try:
+        todo_update = int(console.input("[primary]Choose the TODO to update, [0] to exit [/primary]"))
+    except ValueError as e:
+        console.log("The input was not a valid integer")
+    if todo_update == 0:
+        return
     edit_todo = todo()
-    todo_update = int(console.input("[primary]Choose the TODO to update: [/primary]"))
     todo_update = todo_update - 1
     collection = find_collection(todo_update)
     #Add the data to an object
@@ -69,9 +102,9 @@ def update():
     option_edit = console.input("[primary]What do you need edit [T] Title or [D] Description, [X] to exit ? [/primary]")
     #Edit in database
     if option_edit.lower().strip() == 't':
-        edit_todo.title = console.input("[secondary]Write the new Title:[/secondary] :arrow_right:")
+        edit_todo.title = console.input("[secondary]Write the new Title:[/secondary] :arrow_right: \n")
     elif option_edit.lower().strip() == 'd':
-        edit_todo.description = console.input("[secondary]Write the new Description:[/secondary] :arrow_right:")
+        edit_todo.description = console.input("[secondary]Write the new Description:[/secondary] :arrow_right: \n")
     else:
         return
     try:
@@ -79,32 +112,112 @@ def update():
             "title": edit_todo.title,
             "description":edit_todo.description,
             "time":edit_todo.time,
-            "date":edit_todo.date
+            "date":edit_todo.date,
+            "status": edit_todo.status
         })
-        read_detail(todo_update, all_data)
+        collection = find_collection(todo_update)
+        read_detail(collection)
     except Exception as e:
         console.log("An error an occurred... ",e)
     
     
 def delete():
     #Get the Todo
-    todo_update = int(console.input("[primary]Choose the TODO to delete, [X] to exit [/primary]"))
-    if todo_update.lower().strip() == "x":
+    todo_delete = 0
+    try:
+        todo_delete = int(console.input("[primary]Choose the TODO to delete, [0] to exit: [/primary]"))
+    except ValueError as e:
+        console.log("The input was not a valid integer")
+    if todo_delete == 0:
         return
 
-    todo_update = todo_update - 1
-    collection = find_collection(todo_update)
+    todo_delete = todo_delete - 1
+    collection = find_collection(todo_delete)
     id_delete = collection["id"]
     try:
         database.deleteById(id_delete)
     except Exception as e:
         console.log("An error an occurred... ",e)
-
+def complete():
+    #Get the Todo
+    todo_complete = 0
+    try:
+        todo_complete = int(console.input("[primary]Choose the TODO to complete, [0] to exit [/primary]"))
+    except ValueError as e:
+        console.log("The input was not a valid integer")
+    if todo_complete == 0:
+        return
+    complete_todo = todo()
+    todo_complete = todo_complete - 1
+    collection = find_collection(todo_complete)
+    #Add the data to an object
+    id_edit = collection["id"]
+    complete_todo.title = collection["title"]
+    complete_todo.description = collection["description"]
+    option_complete = console.input("[primary]Do you complete this TODO [Y] Yes or [N] No ? [/primary]")
+    #Edit in database
+    if option_complete.lower().strip() == 'y':
+        complete_todo.status = True
+    elif option_complete.lower().strip() == 'n':
+        complete_todo.status = False
+    
+    try:
+        database.updateById(id_edit, {
+            "title": complete_todo.title,
+            "description":complete_todo.description,
+            "time":complete_todo.time,
+            "date":complete_todo.date,
+            "status": complete_todo.status
+        })
+        collection = find_collection(todo_complete)
+        read_detail(collection)
+    except Exception as e:
+        console.log("An error an occurred... ",e)
 def run():
-    read()
-    delete()
-    #op = int(console.input("[primary]Enter a number please : [/primary]"))
-    #new_todo = console.input("[primary]Add the new todo: [/primary]")
+    op = 0
+    text = Text()
+    text.append("1.- Add Todo \n")
+    text.append("2.- Read Todo \n")
+    text.append("3.- Edit Todo \n")
+    text.append("4.- Delete Todo \n")
+    text.append("5.- Complete Todo \n")
+    text.append("6.- Exit")
+    while op != 6:
+        console.print(Panel.fit(
+                Align.center(
+                    text,
+                    vertical="middle",
+                ),
+                padding=(1, 2),
+                title="Menu TODO"
+            )
+        )
+        try:
+            op = int(console.input('[secondary]Enter a number option .... [/secondary]'))
+            system('clear')
+            read_once()
+        except ValueError as e:
+            console.log("The input was not a valid integer")
+            break
+        
+        if op == 1:
+            create() 
+            console.input("[primary]Succesfully, press enter to continue.....[/primary]")
+        elif op == 2:
+            read()
+            console.input("[primary]Succesfully, press enter to continue.....[/primary]")
+        elif op == 3:
+            update()
+            console.input("[primary]Succesfully, press enter to continue.....[/primary]")
+        elif op == 4:
+            delete()
+            console.input("[primary]Succesfully, press enter to continue.....[/primary]")
+        elif op == 5:
+            complete()
+            console.input("[primary]Succesfully, press enter to continue.....[/primary]")
+       
+        system('clear')
+        
 
 if __name__ == "__main__":
     run()
