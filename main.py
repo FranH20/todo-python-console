@@ -173,16 +173,21 @@ def complete():
         read_detail(collection)
     except Exception as e:
         console.log("An error an occurred... ",e)
-def run():
-    op = 0
+def get_text():
+    all_data = database.getAll()
     text = Text()
     text.append("1.- Add Todo \n")
-    text.append("2.- Read Todo \n")
-    text.append("3.- Edit Todo \n")
-    text.append("4.- Delete Todo \n")
-    text.append("5.- Complete Todo \n")
+    if all_data:
+        text.append("2.- Read Todo \n")
+        text.append("3.- Edit Todo \n")
+        text.append("4.- Delete Todo \n")
+        text.append("5.- Complete Todo \n")
     text.append("6.- Exit")
+    return text, all_data
+def run():
+    op = 0
     while op != 6:
+        text,all_data = get_text()
         console.print(Panel.fit(
                 Align.center(
                     text,
@@ -203,19 +208,20 @@ def run():
         if op == 1:
             create() 
             console.input("[primary]Succesfully, press enter to continue.....[/primary]")
-        elif op == 2:
-            read()
-            console.input("[primary]Succesfully, press enter to continue.....[/primary]")
-        elif op == 3:
-            update()
-            console.input("[primary]Succesfully, press enter to continue.....[/primary]")
-        elif op == 4:
-            delete()
-            console.input("[primary]Succesfully, press enter to continue.....[/primary]")
-        elif op == 5:
-            complete()
-            console.input("[primary]Succesfully, press enter to continue.....[/primary]")
-       
+        elif all_data:             
+            if op == 2:
+                read()
+                console.input("[primary]Succesfully, press enter to continue.....[/primary]")
+            elif op == 3:
+                update()
+                console.input("[primary]Succesfully, press enter to continue.....[/primary]")
+            elif op == 4:
+                delete()
+                console.input("[primary]Succesfully, press enter to continue.....[/primary]")
+            elif op == 5:
+                complete()
+                console.input("[primary]Succesfully, press enter to continue.....[/primary]")
+        
         system('clear')
         
 
