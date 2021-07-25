@@ -4,12 +4,18 @@ from typing import Dict
 class todo:
 
     def __init__(self):
+        self._id = 0
         self._title = ""
         self._description = ""
         self._date = datetime.now().strftime("%d/%m/%Y")
         self._time = ""
         self._status = False
     
+    #Get id
+    @property
+    def id(self):
+        return self._id
+
     #Get title
     @property
     def title(self):
@@ -55,7 +61,7 @@ class todo:
     def time(self):
         return self._time
     
-    def add_to_database(self) -> None:
+    def create_model(self) -> dict:
         model_dicct = {
             "title":self._title, 
             "description": self._description,
@@ -65,21 +71,19 @@ class todo:
         }
         return model_dicct
 
-    def find_and_get(self, all_data: Dict, todo_search: int) -> bool:
+    def find_and_get(self, all_data: dict, todo_search: int) -> dict:
         #find the object
         collection = {}
         if todo_search >= 0 and todo_search < len(all_data):
             collection = all_data[todo_search]
-        else:
-            return False
-        #get the object
+        self._id = collection["id"]
         self._title = collection["title"] 
         self._description = collection["description"]
         self._status = collection["status"]
         self._date = collection["date"]
         self._time = collection["time"]
-        return True
-    
+        return collection
+        
     def show_all(self):
         message = f'Title: [primary]{self.title}[/primary] \n' + \
             f'Description: [primary]{self.description}[/primary] \n'
