@@ -1,4 +1,5 @@
 from datetime import datetime
+
 class todo:
 
     def __init__(self):
@@ -53,3 +54,27 @@ class todo:
     def time(self):
         return self._time
     
+    def add_to_database(self):
+        model_dicct = {
+            "title":self._title, 
+            "description": self._description,
+            "time": self._time,
+            "date": self._date,
+            "status": self._status
+        }
+        return model_dicct
+
+    def find_and_get(self, all_data, todo_search):
+        #find the object
+        collection = {}
+        if todo_search >= 0 and todo_search < len(all_data):
+            collection = all_data[todo_search]
+        else:
+            return False
+        #get the object
+        self._title = collection["title"] 
+        self._description = collection["description"]
+        self._status = collection["status"]
+        self._date = collection["date"]
+        self._time = collection["time"]
+        return True
