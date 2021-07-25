@@ -1,5 +1,6 @@
 #python
 from os import system
+from re import L
 #rich
 from rich.console import Console
 from rich.layout import Panel
@@ -72,12 +73,15 @@ def read():
         return
     todo_read = todo_read - 1
     collection = find_collection(todo_read)
+    if not collection:
+        console.log("There is nothing to show")
+        return
     read_detail(collection)
 
 def find_collection(todo_search):
     collection = {}
     all_data = database.getAll()
-    if todo_search >= 0:
+    if todo_search >= 0 and todo_search < len(all_data):
         collection = all_data[todo_search]
     return collection
 
