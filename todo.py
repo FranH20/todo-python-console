@@ -75,13 +75,13 @@ class todo:
         #find the object
         collection = {}
         if todo_search >= 0 and todo_search < len(all_data):
-            collection = all_data[todo_search]
-        self._id = collection["id"]
-        self._title = collection["title"] 
-        self._description = collection["description"]
-        self._status = collection["status"]
-        self._date = collection["date"]
-        self._time = collection["time"]
+            collection = all_data[todo_search]        
+            self._id = collection["id"]
+            self._title = collection["title"] 
+            self._description = collection["description"]
+            self._status = collection["status"]
+            self._date = collection["date"]
+            self._time = collection["time"]
         return collection
         
     def show_all(self):

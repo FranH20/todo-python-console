@@ -33,9 +33,9 @@ def read_once() -> None:
     for collection in all_data:
         count += 1
         if collection["status"] == True:
-            message = ':white_check_mark:'
+            message = message + ':white_check_mark:'
         else:
-            message = ':x:'
+            message = message + ':x:'
         message = message + f'[secondary] {str(count)}.- {collection["title"]} [/secondary]\n' 
     console.print(message)
 
@@ -53,7 +53,7 @@ def create() -> None:
     try:
         new_todo.title = todo_title
         new_todo.description = todo_description
-        database.add(new_todo.create_model)
+        database.add(new_todo.create_model())
     except Exception as e:
         console.log(AN_ERROR,e)
             
@@ -63,10 +63,10 @@ def read() -> todo:
     todo_read = 0
     try:
         todo_read = int(console.input("[primary]Choose a TODO, [0] to exit: [/primary]"))
-        if todo_read == 0:
+        if todo_read <= 0:
             return read_todo
     except ValueError as e:
-        console.log("The input was not a valid integer")
+        console.log("The input was not a valid integer", e)
         return read_todo
     if not read_todo.find_and_get(database.getAll(), todo_read - 1):
         console.log(NOTHING_TO_SHOW)
@@ -105,6 +105,7 @@ def delete() -> None:
         return
     try:
         database.deleteById(delete_todo.id)
+        console.print("[primary]This todo was removed[/primary]")
     except Exception as e:
         console.log(AN_ERROR,e)
         return
@@ -152,7 +153,8 @@ def run():
                     vertical="middle",
                 ),
                 padding=(1, 2),
-                title="Menu TODO"
+                title="Menu TODO",
+                style="medium_spring_green"
             )
         )
         try:
