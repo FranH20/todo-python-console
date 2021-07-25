@@ -1,5 +1,5 @@
 #python
-from os import system
+from os import system, name as system_name
 from re import L
 #rich
 from rich.console import Console
@@ -18,26 +18,30 @@ from todo import todo
 database = db.getDb("database.json")
 console = Console(theme=custom_theme)
 
+#Messages
+NOTHING_TO_SHOW = "There is nothing to show"
+AN_ERROR = "An error an occurred..."
+
+def cls():
+    system('cls' if system_name=='nt' else 'clear')
+    
 def create():
+    #Get answers
     todo_title = console.input("[primary]Add the Title of the new Todo, [X] to exit: [/primary]")
     if todo_title.lower().strip() == 'x':
         return
     todo_description = console.input("[secondary]Add the description todo, [X] to exit: [/secondary]")
     if todo_description.lower().strip() == 'x':
         return
+    
+    #Add todo bd
     new_todo = todo()
     try:
         new_todo.title = todo_title
         new_todo.description = todo_description
-        database.add({
-            "title":new_todo.title,
-            "description": new_todo.description,
-            "time": new_todo.time,
-            "date": new_todo.date,
-            "status": new_todo.status
-        })
+        database.add(new_todo.add_to_database)
     except Exception as e:
-        console.log("An error an occurred... ",e)
+        console.log(AN_ERROR,e)
         
 def read_detail(collection):
     system("clear")
@@ -64,19 +68,19 @@ def read_once():
     
         
 def read():
+    #Get answers
     todo_read = 0
     try:
         todo_read = int(console.input("[primary]Choose the TODO to view the detail, [0] to exit: [/primary]"))
     except ValueError as e:
         console.log("The input was not a valid integer")
-    if todo_read == 0:
+    read_todo = todo()
+    if not read_todo.find_and_get(database.getAll(), todo_read - 1):
+        console.log(NOTHING_TO_SHOW)
         return
-    todo_read = todo_read - 1
-    collection = find_collection(todo_read)
-    if not collection:
-        console.log("There is nothing to show")
-        return
-    read_detail(collection)
+    cls()
+    message = read_todo.show_all()
+    console.print(message)
 
 def find_collection(todo_search):
     collection = {}

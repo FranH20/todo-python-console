@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Dict
 
 class todo:
 
@@ -54,7 +55,7 @@ class todo:
     def time(self):
         return self._time
     
-    def add_to_database(self):
+    def add_to_database(self) -> None:
         model_dicct = {
             "title":self._title, 
             "description": self._description,
@@ -64,7 +65,7 @@ class todo:
         }
         return model_dicct
 
-    def find_and_get(self, all_data, todo_search):
+    def find_and_get(self, all_data: Dict, todo_search: int) -> bool:
         #find the object
         collection = {}
         if todo_search >= 0 and todo_search < len(all_data):
@@ -78,3 +79,14 @@ class todo:
         self._date = collection["date"]
         self._time = collection["time"]
         return True
+    
+    def show_all(self):
+        message = f'Title: [primary]{self.title}[/primary] \n' + \
+            f'Description: [primary]{self.description}[/primary] \n'
+        if self.status == True:
+            message = message + 'Status: [primary]Todo finished[/primary]  :white_check_mark: \n'
+        else:
+            message = message + 'Status: [primary]Todo unfinished[/primary] :x: \n'
+        message = message +  f'Date: [primary]{self.date}[/primary] \n' + \
+            f'Time: [primary]{self.time}[/primary]'
+        return message
