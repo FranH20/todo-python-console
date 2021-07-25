@@ -23,10 +23,23 @@ NOTHING_TO_SHOW = "There is nothing to show"
 AN_ERROR = "An error an occurred..."
 NUMBER_INPUT_ERROR = "The input was not a valid integer"
 
-def cls():
+def cls() -> None:
     system('cls' if system_name=='nt' else 'clear')
 
-def create():
+def read_once() -> None:
+    all_data = database.getAll()
+    count = 0
+    message = ""
+    for collection in all_data:
+        count += 1
+        if collection["status"] == True:
+            message = ':white_check_mark:'
+        else:
+            message = ':x:'
+        message = message + f'[secondary] {str(count)}.- {collection["title"]} [/secondary]\n' 
+    console.print(message)
+
+def create() -> None:
     #Get answers
     todo_title = console.input("[primary]Add the Title of the new Todo, [X] to exit: [/primary]")
     if todo_title.lower().strip() == 'x':
@@ -43,56 +56,31 @@ def create():
         database.add(new_todo.create_model)
     except Exception as e:
         console.log(AN_ERROR,e)
-    
-def read_once() -> None:
-    all_data = database.getAll()
-    count = 0
-    message = ""
-    for collection in all_data:
-        count += 1
-        if collection["status"] == True:
-            message = ':white_check_mark:'
-        else:
-            message = ':x:'
-        message = message + f'[secondary] {str(count)}.- {collection["title"]} [/secondary]\n' 
-    console.print(message)
-        
-def read() -> None:
+            
+def read() -> todo:
     #Get answers
+    read_todo = todo()
     todo_read = 0
     try:
-        todo_read = int(console.input("[primary]Choose the TODO to view the detail, [0] to exit: [/primary]"))
+        todo_read = int(console.input("[primary]Choose a TODO, [0] to exit: [/primary]"))
         if todo_read == 0:
-            return
+            return read_todo
     except ValueError as e:
         console.log("The input was not a valid integer")
-    
-    read_todo = todo()
+        return read_todo
     if not read_todo.find_and_get(database.getAll(), todo_read - 1):
         console.log(NOTHING_TO_SHOW)
         return
     cls()
     message = read_todo.show_all()
     console.print(message)
+    return read_todo
 
-def update():
+def update() -> None:
     #Get answers
-    todo_update = 0
-    try:
-        todo_update = int(console.input("[primary]Choose the TODO to update, [0] to exit [/primary]"))
-    except ValueError as e:
-        console.log(NUMBER_INPUT_ERROR)
-    if todo_update == 0:
+    edit_todo = read()
+    if edit_todo.id == 0:
         return
-    edit_todo = todo()
-    if not edit_todo.find_and_get(database.getAll(), todo_update - 1):
-        console.log(NOTHING_TO_SHOW)
-        return
-    #show the data to an object
-    cls()
-    message = edit_todo.show_all()
-    console.print(message)
-
     option_edit = console.input("[primary]What do you need edit [T] Title or [D] Description, [X] to exit ? [/primary]")
     #Edit in database
     if option_edit.lower().strip() == 't':
@@ -102,47 +90,30 @@ def update():
     else:
         return
     try:
-        database.updateById(option_edit.id, option_edit.create_model())
+        database.updateById(edit_todo.id, edit_todo.create_model())
         cls()
-        message = option_edit.show_all()
+        message = edit_todo.show_all()
         console.print(message)
     except Exception as e:
-        console.log("An error an occurred... ",e)
+        console.log(AN_ERROR,e)
+        return
     
-    
-def delete():
+def delete() -> None:
     #Get the Todo
-    todo_delete = 0
+    delete_todo = read()
+    if delete_todo.id == 0:
+        return
     try:
-        todo_delete = int(console.input("[primary]Choose the TODO to delete, [0] to exit: [/primary]"))
-    except ValueError as e:
-        console.log("The input was not a valid integer")
-    if todo_delete == 0:
+        database.deleteById(delete_todo.id)
+    except Exception as e:
+        console.log(AN_ERROR,e)
         return
 
-    todo_delete = todo_delete - 1
-    collection = find_collection(todo_delete)
-    id_delete = collection["id"]
-    try:
-        database.deleteById(id_delete)
-    except Exception as e:
-        console.log("An error an occurred... ",e)
-def complete():
+def complete() -> None:
     #Get the Todo
-    todo_complete = 0
-    try:
-        todo_complete = int(console.input("[primary]Choose the TODO to complete, [0] to exit [/primary]"))
-    except ValueError as e:
-        console.log("The input was not a valid integer")
-    if todo_complete == 0:
+    complete_todo = read()
+    if complete_todo.id == 0:
         return
-    complete_todo = todo()
-    todo_complete = todo_complete - 1
-    collection = find_collection(todo_complete)
-    #Add the data to an object
-    id_edit = collection["id"]
-    complete_todo.title = collection["title"]
-    complete_todo.description = collection["description"]
     option_complete = console.input("[primary]Do you complete this TODO [Y] Yes or [N] No ? [/primary]")
     #Edit in database
     if option_complete.lower().strip() == 'y':
@@ -151,17 +122,14 @@ def complete():
         complete_todo.status = False
     
     try:
-        database.updateById(id_edit, {
-            "title": complete_todo.title,
-            "description":complete_todo.description,
-            "time":complete_todo.time,
-            "date":complete_todo.date,
-            "status": complete_todo.status
-        })
-        collection = find_collection(todo_complete)
-        read_detail(collection)
+        database.updateById(complete_todo.id, complete_todo.create_model())
+        cls()
+        message = complete_todo.show_all()
+        console.print(message)
     except Exception as e:
-        console.log("An error an occurred... ",e)
+        console.log(AN_ERROR,e)
+        return
+
 def get_text():
     all_data = database.getAll()
     text = Text()
@@ -173,6 +141,7 @@ def get_text():
         text.append("5.- Complete Todo \n")
     text.append("6.- Exit")
     return text, all_data
+
 def run():
     op = 0
     while op != 6:
@@ -212,7 +181,6 @@ def run():
                 console.input("[primary]Succesfully, press enter to continue.....[/primary]")
         cls()
         
-
 if __name__ == "__main__":
     run()
  
